@@ -7,7 +7,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Switch } from "../ui/switch";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger,
 } from "../ui/dialog";
 
 export default function KeysPanel({ onChanged }) {
@@ -100,7 +100,10 @@ export default function KeysPanel({ onChanged }) {
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-slate-900 border-slate-700 text-slate-100">
-              <DialogHeader><DialogTitle className="font-head">Add Universal API Key</DialogTitle></DialogHeader>
+              <DialogHeader>
+                <DialogTitle className="font-head">Add Universal API Key</DialogTitle>
+                <DialogDescription className="text-slate-400">Validated, encrypted (AES-256-GCM) and never shown again in full.</DialogDescription>
+              </DialogHeader>
               <div className="space-y-3">
                 <div>
                   <label className="eyebrow block mb-1">Universal API Key</label>

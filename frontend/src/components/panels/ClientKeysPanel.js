@@ -6,7 +6,7 @@ import { fmtTime } from "../status";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger,
 } from "../ui/dialog";
 
 export default function ClientKeysPanel() {
@@ -66,7 +66,10 @@ export default function ClientKeysPanel() {
             </Button>
           </DialogTrigger>
           <DialogContent className="bg-slate-900 border-slate-700 text-slate-100">
-            <DialogHeader><DialogTitle className="font-head">New Router Client Key</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle className="font-head">New Router Client Key</DialogTitle>
+              <DialogDescription className="text-slate-400">Issued to a coding agent; the full key is shown only once.</DialogDescription>
+            </DialogHeader>
             <div>
               <label className="eyebrow block mb-1">Name</label>
               <Input data-testid="client-key-name-input" placeholder="Cline on my laptop" value={name}

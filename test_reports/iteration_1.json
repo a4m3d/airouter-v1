@@ -1,0 +1,33 @@
+{
+  "summary": "First testing run for AI Router Control Centre. 21/21 backend pytest tests pass against the live external URL, covering health, admin auth (login + JWT enforcement), dashboard metrics, key CRUD (add/list/test/toggle/priority/delete with masking), router chat (success, missing-auth 401, invalid-model no-loop, streaming SSE with [DONE]), automatic failover (bogus higher-priority key -> completion still succeeds, failovers counter incremented, AUTH_FAILED classified in error_breakdown), usage endpoint (per_key + credit-not-shown note), jobs list/detail, health check trigger, structured logs with no credential leakage + status filter, settings GET/PUT persistence, pause/resume, client-keys CRUD (create returns one-time plaintext prefixed sk-router-, list shows only prefixes, rotate returns new plaintext, revoke). Security master check confirms no ciphertext/nonce/EMERGENT_LLM_KEY ever appear in admin API responses. Frontend Playwright verified login with admin token loads dashboard-header, metric strip populates (healthy=2, active_jobs=0, reqs today=11), all 7 nav tabs render, add-key dialog creates key (masked ••••••••XXXX), test-key-button returns AUTH_FAILED toast for fake keys, toggle-key-switch present per row, create-client-key flow reveals a 63-char plaintext once via client-key-reveal, refresh-health-button and settings-save-button both trigger success toasts. No console/page errors detected.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Global", "issues": ["Radix DialogContent warnings (Missing Description/aria-describedby) on Add Key and Create Client Key dialogs - a11y polish only, not blocking"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_api_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Optional: add DialogDescription (or aria-describedby) to the Add Key and Create Client Key modal shadcn Dialogs to silence a11y warnings."
+  ],
+  "critical_code_review_comments": [
+    "Router POST /api/v1/chat/completions correctly masks provider key in x_router.key response field.",
+    "Admin /keys, /usage, /logs, /jobs, /client-keys responses verified free of ciphertext/nonce/EMERGENT_LLM_KEY plaintext.",
+    "Failover engine correctly classifies fake key AUTH_FAILED and fails over to healthy Emergent key; failovers counter increments as expected.",
+    "Streaming SSE emits proper OpenAI chunk format terminated by 'data: [DONE]'.",
+    "Invalid model requests short-circuit without looping keys (returns error in <45s)."
+  ],
+  "updated_files": ["/app/backend/tests/backend_api_test.py"],
+  "success_rate": {"backend": "100% (21/21)", "frontend": "100% of tested flows"},
+  "test_credentials": "Admin token abkA-iyoH_7uWKMb3_mr43nzFl4YHs99 and client key sk-router-Y7as_5RakGo-uoD6_VyGVF04AU-OG4Ut (already documented in /app/memory/test_credentials.md).",
+  "seed_data_creation": "Tests create TEST_-prefixed provider keys and client keys; each test cleans up via delete/revoke. UI test also created a 'Key #3' (masked ••••3456) and two TEST_ck_* client keys (revoked/active) which are safe to leave or clean up manually.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend suite lives at /app/backend/tests/backend_api_test.py. Note the correct admin routes: toggle enable = POST /api/admin/keys/{id}/enabled, priority = POST /api/admin/keys/{id}/priority, client-key revoke = POST /api/admin/client-keys/{id}/revoke (NOT DELETE). Metric-strip data-testids show '—' briefly during initial fetch — wait ~1-2s after dashboard-header appears before asserting numeric values. Frontend Add Key dialog does not have a data-testid on the Name input; if seeding a specific name from Playwright, target the generic 'input[placeholder*=Name]' selector.",
+  "rca of the issue": "N/A — no bugs found this run."
+}
