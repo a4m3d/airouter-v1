@@ -11,7 +11,6 @@ from app import client_keys as ck
 from app import notifier
 from app.config import SUPPORTED_MODELS, DEFAULT_MODEL
 from app.engine import run_chat, adapter, RouterError
-from app.providers.emergent import flatten_messages
 from app.providers.errors import classify_error, ErrorClass, NO_FAILOVER
 from app.security.auth import require_client
 from app.settings_store import get_settings
@@ -95,7 +94,6 @@ async def _stream_completion(client_id, session_id, provider, model, messages):
     timeout = int(settings.get("request_timeout", 120))
     retry_count = int(settings.get("retry_count", 2))
     strategy = settings.get("routing_strategy", "priority")
-    system_message, prompt = flatten_messages(messages)
 
     job = await jm.get_or_create_job(session_id, client_id, provider, model)
     step = await jm.next_step(job["id"])
@@ -126,8 +124,8 @@ async def _stream_completion(client_id, session_id, provider, model, messages):
             started = time.time()
             try:
                 async for delta in adapter.stream(
-                    api_key=secret, session_id=session_id, system_message=system_message,
-                    prompt=prompt, provider=provider, model=model,
+                    api_key=secret, session_id=session_id, messages=messages,
+                    provider=provider, model=model, max_tokens=int(settings.get("max_output_tokens", 8192)),
                 ):
                     if not delta:
                         continue

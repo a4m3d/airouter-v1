@@ -98,7 +98,7 @@ def install_fakes(monkeypatch, keys, adapter_behaviour):
         monkeypatch.setattr(engine.notifier, name, _noop)
 
     class FakeAdapter:
-        async def chat(self, *, api_key, session_id, system_message, prompt, provider, model, timeout):
+        async def chat(self, *, api_key, session_id, messages, provider, model, timeout, max_tokens=None):
             kid = api_key.replace("secret-", "")
             return adapter_behaviour[kid]()
 

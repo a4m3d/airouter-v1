@@ -5,7 +5,7 @@ import time
 from app import key_manager as km
 from app import job_manager as jm
 from app import notifier
-from app.providers.emergent import EmergentAdapter, flatten_messages
+from app.providers.emergent import EmergentAdapter
 from app.providers.errors import (
     classify_error, ErrorClass, FAILOVER_IMMEDIATELY, RETRYABLE_SAME_KEY, NO_FAILOVER,
 )
@@ -46,8 +46,7 @@ async def run_chat(*, client_id, session_id, provider, model, messages, idempote
             return cached["result"], {"job_id": cached["job_id"], "request_id": cached["id"],
                                       "key_id": cached["key_id"], "replayed": True}
 
-    system_message, prompt = flatten_messages(messages)
-
+    system_message, prompt = None, None
     job = await jm.get_or_create_job(session_id, client_id, provider, model)
     step = await jm.next_step(job["id"])
     req = await jm.create_request(job["id"], session_id, client_id, provider, model, idempotency_key)
@@ -58,6 +57,7 @@ async def run_chat(*, client_id, session_id, provider, model, messages, idempote
     timeout = int(settings.get("request_timeout", 120))
     cooldown = int(settings.get("cooldown_seconds", 300))
     rate_cooldown = int(settings.get("rate_limit_cooldown_seconds", 60))
+    max_tokens = int(settings.get("max_output_tokens", 8192))
 
     tried_keys = set()
     prev_key_id = None
@@ -98,8 +98,8 @@ async def run_chat(*, client_id, session_id, provider, model, messages, idempote
             started = time.time()
             try:
                 content = await adapter.chat(
-                    api_key=secret, session_id=session_id, system_message=system_message,
-                    prompt=prompt, provider=provider, model=model, timeout=timeout,
+                    api_key=secret, session_id=session_id, messages=messages,
+                    provider=provider, model=model, timeout=timeout, max_tokens=max_tokens,
                 )
                 latency_ms = int((time.time() - started) * 1000)
                 await km.record_success(key["id"], latency_ms)

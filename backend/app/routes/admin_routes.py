@@ -37,6 +37,7 @@ class SettingsBody(BaseModel):
     cooldown_seconds: int | None = None
     rate_limit_cooldown_seconds: int | None = None
     request_timeout: int | None = None
+    max_output_tokens: int | None = None
     max_concurrent_jobs: int | None = None
     health_check_interval: int | None = None
     logging_level: str | None = None
@@ -152,8 +153,9 @@ async def _test_secret(secret: str, provider: str):
     started = time.time()
     try:
         await adapter.chat(api_key=secret, session_id=f"healthcheck-{int(started)}",
-                           system_message="You are a health check.", prompt="Reply with OK.",
-                           provider=prov, model=model, timeout=30)
+                           messages=[{"role": "system", "content": "You are a health check."},
+                                     {"role": "user", "content": "Reply with OK."}],
+                           provider=prov, model=model, timeout=30, max_tokens=16)
         return {"ok": True, "latency_ms": int((time.time() - started) * 1000)}
     except Exception as exc:
         return {"ok": False, "error_type": classify_error(exc).value,

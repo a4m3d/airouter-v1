@@ -7,6 +7,7 @@ DEFAULT_SETTINGS = {
     "cooldown_seconds": 300,             # cooldown after credit exhaustion
     "rate_limit_cooldown_seconds": 60,   # cooldown after a rate limit
     "request_timeout": 120,              # seconds for a provider request
+    "max_output_tokens": 8192,           # cap on model output (raise for long code/tool calls)
     "max_concurrent_jobs": 20,
     "health_check_interval": 0,          # 0 = disabled auto checks (avoid spend); manual only
     "logging_level": "INFO",
