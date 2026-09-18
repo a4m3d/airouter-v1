@@ -1,0 +1,25 @@
+{
+  "summary": "Targeted retest of login UX bug fix (one-click demo login) + router regression. All checks pass. Backend: GET /api/auth/config returns {demo_login:true}; POST /api/auth/demo-login returns 200 with JWT and admin={id:'demo-admin', name:'Administrator'} — response does NOT contain ADMIN_DASHBOARD_TOKEN or any secret; demo JWT authorizes /api/admin/dashboard (200) and /api/admin/keys (returns key list). Secondary token path still works: POST /api/auth/login with correct admin_token returns JWT; wrong token → 401 'Invalid admin token'. Router regression: POST /api/v1/chat/completions with Bearer sk-router-... and model gpt-5.4 returns a chat.completion (content 'OK', job_id, key mask). Frontend Playwright: fresh load with localStorage cleared shows login-form with demo-login-button visible; admin-token-input NOT visible initially; show-token-login link present; clicking demo-login-button → dashboard-header visible + metric strip populated (Keys:1, Healthy:1, Reqs Today:1); Settings tab renders telegram-settings-card. Logout+reload → click show-token-login reveals admin-token-input; wrong token keeps user on login (401 toast, login-form still present); correct admin token abkA-iyoH_7uWKMb3_mr43nzFl4YHs99 logs in to dashboard-header. No console errors (only benign Telegram.WebView postEvent logs).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/backend_api_test.py",
+    "/app/backend/tests/test_telegram_authorize.py"
+  ],
+  "action_items": [
+    "None — bug fix verified. Reminder for production: set DASHBOARD_DEMO_LOGIN=false to disable the one-click admin bypass; /api/auth/demo-login already returns 403 when disabled (code verified)."
+  ],
+  "critical_code_review_comments": [
+    "auth_routes.py: /api/auth/config only exposes the boolean flag — no secret leakage. /api/auth/demo-login mints an admin JWT with sub='demo-admin', src='demo' and never echoes the ADMIN_DASHBOARD_TOKEN. Good.",
+    "Login.js correctly gates demo UI behind authConfig response and falls back to token form if authConfig fails; admin-token-input is not mounted until showToken=true, keeping the primary CTA prominent.",
+    "Consider adding a visible warning on the demo-login button when DASHBOARD_DEMO_LOGIN is true in a production-like PUBLIC_BASE_URL, so it isn't accidentally left on."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (5/5 targeted endpoints)", "frontend": "100% (all tested flows)"},
+  "test_credentials": "Admin token: abkA-iyoH_7uWKMb3_mr43nzFl4YHs99 (from backend/.env, documented in /app/memory/test_credentials.md). Router client key: sk-router-Y7as_5RakGo-uoD6_VyGVF04AU-OG4Ut. Demo login requires no credentials.",
+  "seed_data_creation": "One router chat.completion job (job_d3f696bf2020) recorded via regression test. Metric strip reflects Reqs Today:1.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Login UX fix is verified end-to-end. On the login screen when DASHBOARD_DEMO_LOGIN=true (current state), the primary CTA is data-testid=demo-login-button; secondary token form is toggled via data-testid=show-token-login → data-testid=admin-token-input + data-testid=login-submit-button. localStorage key is 'router_admin_token'. To force the login screen in a test, clear that key and reload.",
+  "rca of the issue": "Original bug: login screen only offered an 'admin dashboard token' input, blocking users without the token. Fix (verified): backend adds GET /api/auth/config (public boolean flag, no secrets) and POST /api/auth/demo-login gated by env DASHBOARD_DEMO_LOGIN; when true it mints an admin JWT server-side without ever exposing ADMIN_DASHBOARD_TOKEN. Frontend fetches the config on mount and renders a prominent 'Enter Control Centre' button; token form is hidden behind 'Use an admin token instead'. Both paths land on the same admin JWT-protected dashboard. Regression path (router chat.completions with router client key) still works."
+}
