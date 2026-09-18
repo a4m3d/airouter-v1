@@ -1,0 +1,196 @@
+{
+  "project_name": "AI Router Control Centre",
+  "archetype": "THE PERFORMANCE PRO / COMMAND CENTER",
+  "theme": "Dark-first (Obsidian tactical command interface optimized for Desktop & Telegram Web App)",
+  "context": "DASHBOARDS & ADMIN PANELS",
+  "description": "Production-ready, security-focused multi-key AI API router control center designed for coding agents (e.g. Cline) with Telegram Bot & Telegram Web App integration.",
+  "tech_stack": {
+    "framework": "React.js (JavaScript - .js files)",
+    "styling": "Tailwind CSS + Custom CSS Variables",
+    "components": "Shadcn/UI primitives customized for dense command center aesthetic",
+    "icons": "lucide-react, @phosphor-icons/react",
+    "notifications": "sonner",
+    "charts": "recharts / shadcn chart"
+  },
+  "typography": {
+    "headings_font": "Outfit, sans-serif",
+    "body_font": "Inter, sans-serif",
+    "mono_font": "JetBrains Mono, monospace",
+    "rules": {
+      "anti_default_rule": "Do not use generic sans for headings. Use Outfit or JetBrains Mono for a high-precision, tactical feel.",
+      "h1_hero": "text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-100",
+      "h2_section": "text-lg sm:text-xl lg:text-2xl font-semibold tracking-tight text-slate-200",
+      "h3_card": "text-base font-semibold text-slate-200",
+      "subtext_label": "text-xs font-mono uppercase tracking-widest text-slate-400",
+      "code_masked_keys": "font-mono tracking-wider text-emerald-400 bg-slate-950/80 px-2.5 py-1 rounded border border-emerald-500/20 text-xs sm:text-sm"
+    }
+  },
+  "colors": {
+    "palette": {
+      "background": "#080B11",
+      "surface": "#0F1523",
+      "surface_card": "#151C2E",
+      "surface_border": "#1E293B",
+      "surface_hover": "#1E273A",
+      "primary": "#3B82F6",
+      "primary_glow": "rgba(59, 130, 246, 0.15)",
+      "accent_cyan": "#06B6D4",
+      "accent_emerald": "#10B981",
+      "text_main": "#F8FAFC",
+      "text_muted": "#94A3B8",
+      "text_subtle": "#64748B"
+    },
+    "status_indicators": {
+      "healthy": {
+        "color": "#10B981",
+        "bg": "bg-emerald-500/10",
+        "border": "border-emerald-500/30",
+        "text": "text-emerald-400",
+        "dot": "🟢 Healthy",
+        "pulse_class": "animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+      },
+      "cooldown": {
+        "color": "#F59E0B",
+        "bg": "bg-amber-500/10",
+        "border": "border-amber-500/30",
+        "text": "text-amber-400",
+        "dot": "🟡 Cooldown",
+        "pulse_class": "shadow-[0_0_8px_rgba(245,158,11,0.4)]"
+      },
+      "exhausted": {
+        "color": "#EF4444",
+        "bg": "bg-rose-500/10",
+        "border": "border-rose-500/30",
+        "text": "text-rose-400",
+        "dot": "🔴 Exhausted",
+        "pulse_class": "shadow-[0_0_8px_rgba(239,68,68,0.4)]"
+      }
+    },
+    "rules": {
+      "no_pure_black": "Never use pure #000000; use dark tinted obsidian #080B11 or #0F1523 for surfaces.",
+      "contrast": "Ensure text contrast meets WCAG AA / APCA standards. Explicitly define hover states text colors e.g. hover:text-white.",
+      "no_teal_green_dashboard_ban": "Forbidden color #1B93A4 avoided. Palette centers on obsidian, deep navy, slate, cyan and emerald."
+    }
+  },
+  "layout_and_spacing": {
+    "mode": "MODE B: High Density Command Center Grid",
+    "header": {
+      "style": "Fixed / Sticky Glassmorphism Header with z-50",
+      "title": "🤖 AI ROUTER CONTROL CENTRE",
+      "system_status_pill": "System Online badge with glowing green dot",
+      "metric_chips": [
+        "Healthy / Cooldown / Exhausted keys counters",
+        "Active Jobs live count",
+        "Requests Today (Successful / Failed / Failovers breakdown)"
+      ]
+    },
+    "navigation_tabs": [
+      {"id": "keys", "label": "API KEYS", "icon": "Key"},
+      {"id": "usage", "label": "USAGE", "icon": "BarChart3"},
+      {"id": "jobs", "label": "JOBS", "icon": "Cpu"},
+      {"id": "health", "label": "HEALTH", "icon": "Activity"},
+      {"id": "logs", "label": "LOGS", "icon": "Terminal"},
+      {"id": "settings", "label": "SETTINGS", "icon": "Sliders"},
+      {"id": "client_keys", "label": "CLIENT KEYS", "icon": "ShieldCheck"}
+    ],
+    "telegram_web_app_support": {
+      "viewport_height": "use var(--tg-viewport-stable-height, 100vh) or h-screen max-w-7xl mx-auto",
+      "safe_areas": "apply px-3 py-2 sm:px-6 sm:py-4 for seamless display in Telegram Mini App web view",
+      "auto_theme_sync": "read Telegram.WebApp.themeParams if available, fallback to dark command center theme"
+    }
+  },
+  "key_features_and_components": {
+    "api_key_manager": {
+      "key_card": {
+        "elements": [
+          "Status dot indicator (🟢 Healthy / 🟡 Cooldown / 🔴 Exhausted)",
+          "Provider badge (e.g. OpenAI, Anthropic, OpenRouter, DeepSeek, Groq)",
+          "Priority badge (e.g. Priority 1, Priority 2)",
+          "Masked Key Value display (e.g. ••••••••A91F or sk-or-v1-••••••••3B2F) with 1-click show/hide toggle",
+          "Success rate %, Average latency (ms), Failure count",
+          "Cooldown countdown timer (if status is Cooldown)",
+          "Action bar: Test Key connection button, Enable/Disable toggle, Change Priority modal/stepper, Delete Key modal"
+        ]
+      },
+      "add_key_modal": "Support provider selection, custom endpoint URL, API key input, priority score, weight, rate limit limits."
+    },
+    "jobs_session_viewer": {
+      "grid_layout": "Split view: Active/Recent Jobs table on left, Job detail + Failover Step Execution Timeline on right",
+      "fields": ["Job ID", "Session ID", "Provider", "Model", "Current Key Mask", "Current Step", "Status (Pending/Running/Success/Failover/Failed)", "Retries Count", "Duration"],
+      "step_timeline": "Visual vertical timeline showing step 1 (Key A -> 429 Rate Limit) -> step 2 (Failover to Key B -> 200 OK) -> execution duration"
+    },
+    "usage_analytics": {
+      "widgets": [
+        "Total requests over time chart (Area chart)",
+        "Requests per Provider Key bar chart",
+        "Failure & Rate-limit error breakdown pie/bar chart",
+        "Latency distribution per provider key table"
+      ]
+    },
+    "health_panel": {
+      "columns": ["Key Name / Provider", "Auth Status", "Connectivity", "Latency (ms)", "Last Success", "Last Failure", "Cooldown Expiry"],
+      "action": "Trigger manual health check across all keys"
+    },
+    "structured_logs_viewer": {
+      "filters": ["Search Request ID / Session", "Status Filter (Success, Failover, Error)", "Key Filter", "Time Range"],
+      "log_row": "Timestamp | Request ID | Provider Key | HTTP Status | Error Class (e.g. RateLimitError, AuthError, Timeout) | Action Taken (Rotated to Key 2) | Duration ms"
+    },
+    "settings_panel": {
+      "sections": [
+        "Routing Strategy (Priority Order, Round Robin, Lowest Latency, Weighted Random)",
+        "Failover Rules (Max Retries count, Cooldown duration in seconds, Request timeout in ms, Max Concurrent Jobs)",
+        "Health Monitor (Background health check interval sec, auto-heal enabled)",
+        "Telegram Bot & Alerts (Bot token, Telegram Chat ID, notify on key failure/cooldown/exhausted)",
+        "Logging Level (DEBUG, INFO, WARN, ERROR)"
+      ]
+    },
+    "client_keys_manager": {
+      "description": "Router Client API Keys issued for agents like Cline, Roo Code, Cursor.",
+      "features": ["Create client token (e.g. sk-router-xxxx)", "Revoke token", "Rotate token", "Usage quota per client key"]
+    }
+  },
+  "testing_and_data_testids": {
+    "rule": "ALL interactive components and critical data displays MUST include clear kebab-case data-testid attributes.",
+    "required_testids": [
+      "dashboard-header",
+      "system-status-badge",
+      "healthy-keys-count",
+      "cooldown-keys-count",
+      "exhausted-keys-count",
+      "active-jobs-count",
+      "requests-today-count",
+      "nav-tab-keys",
+      "nav-tab-usage",
+      "nav-tab-jobs",
+      "nav-tab-health",
+      "nav-tab-logs",
+      "nav-tab-settings",
+      "nav-tab-client-keys",
+      "add-key-button",
+      "key-card-[key_id]",
+      "key-status-dot-[key_id]",
+      "key-masked-value-[key_id]",
+      "test-key-button-[key_id]",
+      "toggle-key-switch-[key_id]",
+      "delete-key-button-[key_id]",
+      "job-row-[job_id]",
+      "job-timeline-[job_id]",
+      "settings-routing-strategy-select",
+      "settings-save-button",
+      "create-client-key-button",
+      "refresh-health-button"
+    ]
+  },
+  "image_urls": {
+    "server_rack_bg": "https://images.pexels.com/photos/17323801/pexels-photo-17323801.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "network_cables_bg": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTZ8MHwxfHNlYXJjaHxfHxkYXJrJTIwZnV0dXJpc3RpYyUyMHNlcnZlciUyMG5ldHdvcmslMjBzdGF0dXN8ZW58MHx8fHwxNzg5NzM0Mzg4fDA&ixlib=rb-4.1.0&q=85"
+  },
+  "instructions_to_main_agent": [
+    "Ensure all components are strictly written as React JavaScript (.js / .jsx) files.",
+    "Do NOT create TypeScript .tsx files as per codebase convention.",
+    "Ensure AES-256-GCM encryption semantics are communicated on backend and keys are always masked in frontend UI.",
+    "Double check all data-testid attributes are added for full end-to-end automated testing.",
+    "Provide interactive mock actions (Test Key, Rotate Key, Add Key, Run Health Check, Simulate Failover Job) with realistic live state updates & Sonner toasts.",
+    "Make the UI fully responsive so it looks like a high-end desktop command center while scaling smoothly into Telegram Web App webview windows."
+  ]
+}
