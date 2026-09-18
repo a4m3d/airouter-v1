@@ -1,0 +1,30 @@
+{
+  "summary": "Independent verification of the Cline compatibility fix (role-structured messages + max_tokens). All 6 new live-endpoint tests pass, and full regression suite at /app/tests (24 tests) passes. Cline-style tool call returns a well-formed <write_to_file> block containing path 'hello.txt' and content 'hi'. Multi-turn role preservation works (assistant recalls 'blue' from prior context). Streaming SSE emits OpenAI chunk-format events terminated with 'data: [DONE]'. max_output_tokens setting round-trips 8192->4096->8192. Normal chat completions return content plus x_router.job_id. Health check returns per-key status.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter6_cline_fix.py",
+    "/app/test_reports/pytest/pytest_iter6.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Admin endpoints require exchanging the raw admin_token via POST /api/auth/login for a JWT before use — worth documenting for downstream automation (initial iter6 test used the raw token and got 401 until adjusted)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter6_cline_fix.py"
+  ],
+  "success_rate": {"backend": "100% (6/6 live + 24/24 pytest)", "frontend": "N/A"},
+  "test_credentials": "Router key: sk-router-Y7as_5RakGo-uoD6_VyGVF04AU-OG4Ut ; Admin token (exchange at /api/auth/login): abkA-iyoH_7uWKMb3_mr43nzFl4YHs99",
+  "seed_data_creation": "None. No client keys created; Default Client (Cline) untouched. max_output_tokens restored to 8192.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Live tests at /app/backend/tests/test_iter6_cline_fix.py cover Cline tool call, multi-turn role preservation, streaming SSE, max_output_tokens setting round-trip, normal completion job_id, and admin health check. Pytest regression at /app/tests (24 tests) covers flatten/failover/errors/security. Admin auth requires JWT via POST /api/auth/login with {admin_token}.",
+  "rca of the issue": "N/A - verification only; fix confirmed working."
+}
