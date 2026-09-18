@@ -25,6 +25,8 @@ client.interceptors.response.use(
 
 export const api = {
   login: (payload) => axios.post(`${API}/auth/login`, payload),
+  authConfig: () => axios.get(`${API}/auth/config`),
+  demoLogin: () => axios.post(`${API}/auth/demo-login`),
   dashboard: () => client.get("/admin/dashboard"),
   keys: () => client.get("/admin/keys"),
   addKey: (b) => client.post("/admin/keys", b),

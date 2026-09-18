@@ -44,3 +44,21 @@ async def login(body: LoginRequest):
                 "admin": {"id": "dashboard-admin", "name": "Administrator"}}
 
     raise HTTPException(status_code=400, detail="Provide init_data or admin_token")
+
+
+@router.get("/config")
+async def auth_config():
+    """Public: tells the login screen which methods are available. No secrets."""
+    return {
+        "demo_login": os.environ.get("DASHBOARD_DEMO_LOGIN", "false").lower() == "true",
+    }
+
+
+@router.post("/demo-login")
+async def demo_login():
+    """One-click admin access when DASHBOARD_DEMO_LOGIN=true. The admin token is never
+    exposed to the browser; disable this in production (set the flag to false)."""
+    if os.environ.get("DASHBOARD_DEMO_LOGIN", "false").lower() != "true":
+        raise HTTPException(status_code=403, detail="Demo login is disabled")
+    return {"token": create_admin_token("demo-admin", "demo"),
+            "admin": {"id": "demo-admin", "name": "Administrator"}}
