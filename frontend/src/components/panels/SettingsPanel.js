@@ -4,6 +4,7 @@ import { Save, Loader2 } from "lucide-react";
 import { api } from "../../lib/api";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import TelegramCard from "./TelegramCard";
 
 const NUM_FIELDS = [
   { key: "retry_count", label: "Max Retries (same key)" },
@@ -88,6 +89,8 @@ export default function SettingsPanel() {
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-1" />Save Settings</>}
         </Button>
       </div>
+
+      <TelegramCard />
     </div>
   );
 }

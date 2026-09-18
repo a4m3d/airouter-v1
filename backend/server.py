@@ -17,6 +17,8 @@ from app import job_manager as jm  # noqa: E402
 from app.routes.auth_routes import router as auth_router  # noqa: E402
 from app.routes.admin_routes import router as admin_router  # noqa: E402
 from app.routes.router_api import router as router_api  # noqa: E402
+from app.routes.telegram_routes import webhook_router, admin_tg_router  # noqa: E402
+from app import telegram  # noqa: E402
 
 logger = setup_logging(os.environ.get("LOG_LEVEL", "INFO"))
 
@@ -37,6 +39,8 @@ async def public_health():
 app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(router_api)
+app.include_router(webhook_router)
+app.include_router(admin_tg_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -71,6 +75,9 @@ async def on_startup():
     recovered = await jm.recover_stale_jobs()
     if recovered:
         logger.info("Recovery: marked %s in-flight request(s) as interrupted", recovered)
+    if os.environ.get("TELEGRAM_BOT_TOKEN"):
+        res = await telegram.set_webhook()
+        logger.info("Telegram webhook setup: %s", "ok" if res.get("ok") else "skipped/failed")
     logger.info("AI Router Control Centre started")
 
 

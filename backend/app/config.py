@@ -11,6 +11,7 @@ DEFAULT_SETTINGS = {
     "health_check_interval": 0,          # 0 = disabled auto checks (avoid spend); manual only
     "logging_level": "INFO",
     "paused": False,
+    "telegram_admin_ids": [],
     "notifications": {
         "on_failover": True,
         "on_key_exhausted": True,

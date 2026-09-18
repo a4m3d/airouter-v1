@@ -1,35 +1,12 @@
-import asyncio
 import logging
-import os
 
-import requests as http
+from app import telegram
 
 logger = logging.getLogger("router.notifier")
 
 
-def _admin_chat_ids():
-    raw = os.environ.get("TELEGRAM_ADMIN_IDS", "") or ""
-    return [p.strip() for p in raw.replace(" ", "").split(",") if p.strip()]
-
-
-def _send_sync(text: str):
-    token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    if not token:
-        return  # bot not configured; skip silently (still logged internally, redacted)
-    for chat_id in _admin_chat_ids():
-        try:
-            http.post(
-                f"https://api.telegram.org/bot{token}/sendMessage",
-                json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
-                timeout=10,
-            )
-        except Exception:
-            logger.warning("Failed to deliver Telegram notification")
-
-
 async def notify(text: str):
-    # Never include credentials in notifications.
-    await asyncio.get_event_loop().run_in_executor(None, _send_sync, text)
+    await telegram.notify_admins(text)
 
 
 async def notify_failover(job_id, from_mask, to_mask, reason):

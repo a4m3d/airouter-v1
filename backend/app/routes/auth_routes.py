@@ -3,9 +3,9 @@ import os
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from app.config import admin_ids
 from app.security.auth import create_admin_token
 from app.security.telegram_auth import verify_webapp_init_data
+from app.settings_store import effective_admin_ids
 
 router = APIRouter(prefix="/api/auth")
 
@@ -26,8 +26,11 @@ async def login(body: LoginRequest):
         if not user:
             raise HTTPException(status_code=401, detail="Telegram authentication failed")
         uid = str(user.get("id"))
-        allow = admin_ids()
-        if allow and uid not in allow:
+        allow = await effective_admin_ids()
+        if not allow:
+            raise HTTPException(status_code=403,
+                                detail="No administrators configured yet. Add your Telegram ID in Settings → Telegram.")
+        if uid not in allow:
             raise HTTPException(status_code=403, detail="Not an authorized administrator")
         return {"token": create_admin_token(uid, "telegram"),
                 "admin": {"id": uid, "name": user.get("first_name")}}

@@ -41,6 +41,7 @@ class SettingsBody(BaseModel):
     health_check_interval: int | None = None
     logging_level: str | None = None
     paused: bool | None = None
+    telegram_admin_ids: list | None = None
     notifications: dict | None = None
 
 

@@ -16,6 +16,9 @@
 - "Emergent Universal Key #1" is auto-seeded from EMERGENT_LLM_KEY (priority 1, healthy).
 - Additional keys are added via the dashboard (API KEYS → Add Key) or bot /addkey.
 
-## Telegram
-- TELEGRAM_BOT_TOKEN / TELEGRAM_ADMIN_IDS are empty in this demo (bot not running live).
-- Telegram Web App HMAC verification path is implemented and unit-tested.
+## Telegram (LIVE)
+- Bot: @theairouterbot (TELEGRAM_BOT_TOKEN set in backend/.env)
+- Webhook: {PUBLIC_BASE_URL}/api/telegram/webhook (auto-registered on startup, secret = ROUTER_INTERNAL_SECRET)
+- Admin IDs: managed in dashboard Settings → Telegram (stored in settings.telegram_admin_ids), merged with env TELEGRAM_ADMIN_IDS.
+- To authorize yourself: message the bot /start → it replies your numeric ID → paste into Settings → Telegram → Save.
+- Telegram WebApp HMAC login uses this same admin allowlist.
