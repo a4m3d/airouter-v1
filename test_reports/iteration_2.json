@@ -1,0 +1,25 @@
+{
+  "summary": "Targeted retest of Telegram Control auto-refresh bug fix + authorize flow. Backend: 3/3 pytest tests pass (GET /api/admin/telegram returns token_configured=true, bot.username=theairouterbot, webhook.url set; simulated webhook POST with correct secret creates pending user 700100200 with name=QA/username=qatester; POST /api/admin/telegram/authorize {\"id\":\"700100200\"} returns ok=true and moves id into settings.telegram_admin_ids while removing it from pending_users; webhook POST with WRONG X-Telegram-Bot-Api-Secret-Token is a no-op and does not create a pending user). Frontend Playwright verified end-to-end: login with admin token → Settings tab → telegram-settings-card renders; clicking authorize-user-700100200 shows toast 'Authorized 700100200' and row detaches on next 4s poll; after resetting admin_ids via API the row auto-reappears purely from the 4s setInterval poll (no page reload) — bug fix VERIFIED; simulated webhook POST from within page.request.post returned 200; telegram-refresh-button present and clickable; dirty-ref guard confirmed — typed '999888777' into telegram-admin-ids-input, waited 5s across a poll cycle, value preserved (input NOT clobbered); telegram-test-button and telegram-webhook-button both present. No console errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_telegram_authorize.py",
+    "/app/test_reports/pytest/telegram_results.xml"
+  ],
+  "action_items": [
+    "State reset: settings.telegram_admin_ids was cleaned back to [] by the test at completion. However telegram_seen still contains id 700100200 (QA/qatester) plus a pre-existing real user 5682620043 (@sykopathic). If the main agent wants a fully empty pending list, purge those from the telegram_seen collection in MongoDB."
+  ],
+  "critical_code_review_comments": [
+    "TelegramCard.js correctly uses setInterval(4000ms) with cleanup, and useRef dirty-flag prevents the poll from clobbering the ids input while the user is typing — matches the described fix.",
+    "GET /api/admin/telegram computes pending_users as (telegram_seen - admin_ids); authorize adds to admin_ids but does not delete from telegram_seen, so removing an id from admin_ids will re-surface it as pending. This is fine but worth noting for cleanup semantics.",
+    "Webhook route correctly rejects wrong X-Telegram-Bot-Api-Secret-Token (verified: no pending user created)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (3/3 targeted + 21/21 regression from iter1)", "frontend": "100% of tested flows"},
+  "test_credentials": "Admin token abkA-iyoH_7uWKMb3_mr43nzFl4YHs99; webhook secret drtV-juucTIVWDZpGlN60GFam5GuW33zfvhJtxH1XfU (documented in /app/memory/test_credentials.md).",
+  "seed_data_creation": "Webhook simulation created pending user id=700100200 (name=QA, username=qatester) in telegram_seen. Test authorized it and cleanup reverted admin_ids to []. Pending id 700100200 (and pre-existing 5682620043) remain in telegram_seen.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Telegram-specific tests live at /app/backend/tests/test_telegram_authorize.py. For frontend, note: (1) settings.telegram_admin_ids is empty at handoff; (2) telegram_seen holds 700100200 & 5682620043 so the waiting-hint (data-testid telegram-waiting-hint) will NOT render until those ids are removed from telegram_seen. To verify the waiting-hint branch, purge telegram_seen or authorize both pending users first.",
+  "rca of the issue": "Original bug: TelegramCard only fetched status on mount, so users messaging the bot after page load never surfaced. Fix: useEffect now runs load() on mount plus setInterval(load, 4000) with cleanup; a useRef dirty flag prevents polled data from overwriting the admin-IDs input mid-typing. Verified live: authorize row auto-appears within one poll cycle of admin_ids changing without any page reload; typed input value survives poll cycles."
+}

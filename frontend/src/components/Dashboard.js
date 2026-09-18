@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import {
   Key, BarChart3, Cpu, Activity, Terminal, Sliders, ShieldCheck,
-  Power, LogOut, Pause, Play, Bot,
+  Power, LogOut, Pause, Play, Bot, Command,
 } from "lucide-react";
 import { toast } from "sonner";
 import { api, clearToken } from "../lib/api";
@@ -13,6 +13,7 @@ import HealthPanel from "./panels/HealthPanel";
 import LogsPanel from "./panels/LogsPanel";
 import SettingsPanel from "./panels/SettingsPanel";
 import ClientKeysPanel from "./panels/ClientKeysPanel";
+import CommandsPanel from "./panels/CommandsPanel";
 
 const TABS = [
   { id: "keys", label: "API KEYS", icon: Key },
@@ -20,6 +21,7 @@ const TABS = [
   { id: "jobs", label: "JOBS", icon: Cpu },
   { id: "health", label: "HEALTH", icon: Activity },
   { id: "logs", label: "LOGS", icon: Terminal },
+  { id: "commands", label: "COMMANDS", icon: Command },
   { id: "settings", label: "SETTINGS", icon: Sliders },
   { id: "client_keys", label: "CLIENT KEYS", icon: ShieldCheck },
 ];
@@ -167,6 +169,7 @@ export default function Dashboard({ onLogout }) {
         {tab === "jobs" && <JobsPanel />}
         {tab === "health" && <HealthPanel />}
         {tab === "logs" && <LogsPanel />}
+        {tab === "commands" && <CommandsPanel />}
         {tab === "settings" && <SettingsPanel />}
         {tab === "client_keys" && <ClientKeysPanel />}
       </main>

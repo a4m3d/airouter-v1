@@ -77,6 +77,7 @@ async def on_startup():
         logger.info("Recovery: marked %s in-flight request(s) as interrupted", recovered)
     if os.environ.get("TELEGRAM_BOT_TOKEN"):
         res = await telegram.set_webhook()
+        await telegram.set_my_commands()
         logger.info("Telegram webhook setup: %s", "ok" if res.get("ok") else "skipped/failed")
     logger.info("AI Router Control Centre started")
 

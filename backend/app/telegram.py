@@ -60,6 +60,26 @@ async def set_webhook():
                                      "allowed_updates": ["message"]})
 
 
+COMMANDS = [
+    {"command": "start", "description": "Open the control centre & show help"},
+    {"command": "status", "description": "System status & today's counters"},
+    {"command": "keys", "description": "List keys with health & priority"},
+    {"command": "addkey", "description": "Add & validate a new Universal Key"},
+    {"command": "usage", "description": "Totals: requests, success, failures, failovers"},
+    {"command": "jobs", "description": "Recent jobs & their status"},
+    {"command": "health", "description": "Run health checks on all keys"},
+    {"command": "logs", "description": "Recent request logs"},
+    {"command": "pause", "description": "Pause routing (reject new requests)"},
+    {"command": "resume", "description": "Resume routing"},
+]
+
+
+async def set_my_commands():
+    if not _token():
+        return {"ok": False}
+    return await call("setMyCommands", {"commands": COMMANDS})
+
+
 async def notify_admins(text: str):
     ids = await effective_admin_ids()
     for chat_id in ids:
