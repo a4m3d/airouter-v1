@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { Send, Link2, Save, Loader2, Bot, UserPlus } from "lucide-react";
+import { Send, Link2, Save, Loader2, Bot, UserPlus, RefreshCw } from "lucide-react";
 import { api } from "../../lib/api";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -9,22 +9,28 @@ export default function TelegramCard() {
   const [status, setStatus] = useState(null);
   const [ids, setIds] = useState("");
   const [busy, setBusy] = useState(null);
+  const dirty = useRef(false);
 
   const load = useCallback(async () => {
     try {
       const { data } = await api.telegramStatus();
       setStatus(data);
-      setIds((data.admin_ids || []).join(", "));
+      if (!dirty.current) setIds((data.admin_ids || []).join(", "));
     } catch (e) { /* noop */ }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+    const t = setInterval(load, 4000);
+    return () => clearInterval(t);
+  }, [load]);
 
   const saveIds = async () => {
     setBusy("save");
     try {
       const arr = ids.split(",").map((s) => s.trim()).filter(Boolean);
       await api.saveSettings({ telegram_admin_ids: arr });
+      dirty.current = false;
       toast.success("Admin IDs saved");
       load();
     } catch (e) { toast.error("Failed to save"); }
@@ -71,6 +77,10 @@ export default function TelegramCard() {
         <span className={`ml-auto text-xs font-mono-x px-2 py-0.5 rounded border ${connected ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" : "text-rose-400 border-rose-500/30 bg-rose-500/10"}`}>
           {connected ? "connected" : "no token"}
         </span>
+        <Button data-testid="telegram-refresh-button" onClick={load} size="sm" variant="outline"
+          className="ml-2 border-slate-700 bg-slate-900/60 text-slate-200 h-7 px-2">
+          <RefreshCw className="w-3.5 h-3.5" />
+        </Button>
       </div>
 
       {connected && (
@@ -107,10 +117,17 @@ export default function TelegramCard() {
         </div>
       )}
 
+      {connected && (!status.pending_users || status.pending_users.length === 0) && status.admin_ids.length === 0 && (
+        <div className="mb-4 flex items-center gap-2 text-xs text-amber-400 font-mono-x" data-testid="telegram-waiting-hint">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Waiting for you to message @{status.bot ? status.bot.username : "the bot"} with /start…
+        </div>
+      )}
+
       <label className="eyebrow block mb-2">Authorized Admin IDs (comma-separated)</label>
       <div className="flex gap-2 mb-3">
         <Input data-testid="telegram-admin-ids-input" placeholder="123456789, 987654321" value={ids}
-          onChange={(e) => setIds(e.target.value)}
+          onChange={(e) => { dirty.current = true; setIds(e.target.value); }}
           className="bg-slate-950/60 border-slate-700 text-sm font-mono-x" />
         <Button data-testid="save-telegram-ids-button" onClick={saveIds} disabled={busy === "save"}
           className="bg-blue-600 hover:bg-blue-500 text-white">
