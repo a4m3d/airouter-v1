@@ -36,8 +36,13 @@ function Metric({ label, value, tone = "text-slate-100", testId }) {
 }
 
 export default function Dashboard({ onLogout }) {
-  const [tab, setTab] = useState("keys");
+  const [tab, setTab] = useState(() => localStorage.getItem("router_active_tab") || "keys");
   const [stats, setStats] = useState(null);
+
+  const changeTab = (id) => {
+    setTab(id);
+    localStorage.setItem("router_active_tab", id);
+  };
 
   const load = useCallback(async () => {
     try {
@@ -50,7 +55,7 @@ export default function Dashboard({ onLogout }) {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 6000);
+    const t = setInterval(load, 4000);
     return () => clearInterval(t);
   }, [load]);
 
@@ -139,7 +144,7 @@ export default function Dashboard({ onLogout }) {
 
       {/* Nav tabs */}
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 pt-5">
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex flex-wrap gap-2">
           {TABS.map((t) => {
             const Icon = t.icon;
             const active = tab === t.id;
@@ -147,7 +152,7 @@ export default function Dashboard({ onLogout }) {
               <button
                 key={t.id}
                 data-testid={`nav-tab-${t.id.replace("_", "-")}`}
-                onClick={() => setTab(t.id)}
+                onClick={() => changeTab(t.id)}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-mono-x tracking-wider whitespace-nowrap transition-colors border ${
                   active
                     ? "bg-blue-500/15 border-blue-500/40 text-blue-300"

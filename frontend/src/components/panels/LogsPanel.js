@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "../../lib/api";
+import { usePoll } from "../../lib/usePoll";
 import { fmtTime } from "../status";
 
 const FILTERS = ["all", "success", "failed", "running"];
@@ -20,6 +21,7 @@ export default function LogsPanel() {
   }, [filter]);
 
   useEffect(() => { load(); }, [load]);
+  usePoll(load, 5000);
 
   return (
     <div>

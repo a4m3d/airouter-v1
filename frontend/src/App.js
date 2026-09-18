@@ -12,6 +12,8 @@ export default function App() {
 
   useEffect(() => {
     initTelegram();
+    const onExpired = () => setAuthed(false);
+    window.addEventListener("router-auth-expired", onExpired);
     const tryTelegram = async () => {
       if (getToken()) {
         setBooting(false);
@@ -30,6 +32,7 @@ export default function App() {
       setBooting(false);
     };
     tryTelegram();
+    return () => window.removeEventListener("router-auth-expired", onExpired);
   }, []);
 
   if (booting) {

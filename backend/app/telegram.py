@@ -50,6 +50,29 @@ async def webhook_info():
     return await call("getWebhookInfo", {})
 
 
+# Cache bot identity + webhook info so the dashboard status endpoint stays fast
+# (these rarely change; calling Telegram on every poll made the UI laggy).
+_meta_cache = {"me": None, "webhook": None, "ts": 0.0}
+
+
+async def cached_meta(ttl: int = 60):
+    import time as _t
+    now = _t.time()
+    if not _token():
+        return None, None
+    if now - _meta_cache["ts"] > ttl or _meta_cache["ts"] == 0.0:
+        me = await get_me()
+        wh = await webhook_info()
+        _meta_cache["me"] = me.get("result") if me.get("ok") else None
+        _meta_cache["webhook"] = wh.get("result") if wh.get("ok") else None
+        _meta_cache["ts"] = now
+    return _meta_cache["me"], _meta_cache["webhook"]
+
+
+def invalidate_meta():
+    _meta_cache["ts"] = 0.0
+
+
 async def set_webhook():
     base = os.environ.get("PUBLIC_BASE_URL", "").rstrip("/")
     secret = os.environ.get("ROUTER_INTERNAL_SECRET", "")

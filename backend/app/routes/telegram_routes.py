@@ -33,15 +33,14 @@ async def telegram_webhook(request: Request,
 @admin_tg_router.get("")
 async def telegram_status(admin=Depends(require_admin)):
     token_set = bool(os.environ.get("TELEGRAM_BOT_TOKEN"))
-    me = await telegram.get_me() if token_set else {"ok": False}
-    info = await telegram.webhook_info() if token_set else {"ok": False}
+    me, webhook = await telegram.cached_meta() if token_set else (None, None)
     admins = sorted(await effective_admin_ids())
     seen = await telegram_seen.find({}, {"_id": 0}).sort("last_seen", -1).limit(10).to_list(10)
     pending = [u for u in seen if u["id"] not in admins]
     return {
         "token_configured": token_set,
-        "bot": me.get("result") if me.get("ok") else None,
-        "webhook": info.get("result") if info.get("ok") else None,
+        "bot": me,
+        "webhook": webhook,
         "admin_ids": admins,
         "pending_users": pending,
         "public_base_url": os.environ.get("PUBLIC_BASE_URL", ""),
@@ -68,7 +67,9 @@ async def authorize(body: AuthorizeBody, admin=Depends(require_admin)):
 
 @admin_tg_router.post("/set-webhook")
 async def set_webhook(admin=Depends(require_admin)):
-    return await telegram.set_webhook()
+    res = await telegram.set_webhook()
+    telegram.invalidate_meta()
+    return res
 
 
 @admin_tg_router.post("/test")

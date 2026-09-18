@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
 import { api } from "../../lib/api";
+import { usePoll } from "../../lib/usePoll";
 
 function Stat({ label, value, tone = "text-slate-100", testId }) {
   return (
@@ -14,9 +15,12 @@ function Stat({ label, value, tone = "text-slate-100", testId }) {
 export default function UsagePanel() {
   const [data, setData] = useState(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     api.usage().then((r) => setData(r.data)).catch(() => {});
   }, []);
+
+  useEffect(() => { load(); }, [load]);
+  usePoll(load, 5000);
 
   if (!data) return <div className="eyebrow animate-pulse">Loading usage…</div>;
 

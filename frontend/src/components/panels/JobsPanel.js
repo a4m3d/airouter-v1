@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ArrowRight, CheckCircle2, XCircle, RotateCw } from "lucide-react";
 import { api } from "../../lib/api";
+import { usePoll } from "../../lib/usePoll";
 import { fmtTime } from "../status";
 
 function StatusBadge({ status }) {
@@ -16,9 +17,12 @@ export default function JobsPanel() {
   const [jobs, setJobs] = useState([]);
   const [detail, setDetail] = useState(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     api.jobs().then((r) => setJobs(r.data)).catch(() => {});
   }, []);
+
+  useEffect(() => { load(); }, [load]);
+  usePoll(load, 5000);
 
   const openJob = async (id) => {
     const { data } = await api.jobDetail(id);

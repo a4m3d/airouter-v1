@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Plus, TestTube2, Trash2, Loader2, ArrowUpDown, RefreshCw } from "lucide-react";
 import { api } from "../../lib/api";
+import { usePoll } from "../../lib/usePoll";
 import { StatusDot, fmtTime } from "../status";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -18,8 +19,8 @@ export default function KeysPanel({ onChanged }) {
   const [form, setForm] = useState({ secret: "", label: "", priority: "" });
   const [adding, setAdding] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (silent) => {
+    if (!silent) setLoading(true);
     try {
       const { data } = await api.keys();
       setKeys(data);
@@ -29,6 +30,7 @@ export default function KeysPanel({ onChanged }) {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  usePoll(() => load(true), 5000);
 
   const refresh = () => { load(); onChanged && onChanged(); };
 

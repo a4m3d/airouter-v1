@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Plus, RotateCw, Ban, Copy, Loader2 } from "lucide-react";
 import { api } from "../../lib/api";
+import { usePoll } from "../../lib/usePoll";
 import { fmtTime } from "../status";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -21,6 +22,7 @@ export default function ClientKeysPanel() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  usePoll(load, 6000);
 
   const create = async () => {
     setCreating(true);

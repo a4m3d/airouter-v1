@@ -17,7 +17,9 @@ client.interceptors.response.use(
   (e) => {
     if (e.response && e.response.status === 401) {
       clearToken();
-      window.location.reload();
+      // Graceful: let the app show the login screen without a jarring full reload
+      // (which would also drop the user's current tab/state).
+      window.dispatchEvent(new Event("router-auth-expired"));
     }
     return Promise.reject(e);
   }

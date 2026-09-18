@@ -21,7 +21,7 @@ export default function TelegramCard() {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 4000);
+    const t = setInterval(load, 8000);
     return () => clearInterval(t);
   }, [load]);
 

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Activity, Loader2 } from "lucide-react";
 import { api } from "../../lib/api";
+import { usePoll } from "../../lib/usePoll";
 import { StatusDot, fmtTime } from "../status";
 import { Button } from "../ui/button";
 
@@ -14,6 +15,7 @@ export default function HealthPanel() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  usePoll(() => { if (!running) load(); }, 6000);
 
   const runCheck = async () => {
     setRunning(true);
