@@ -51,6 +51,11 @@ async def revoke_client_key(key_id: str):
     )
 
 
+async def delete_client_key(key_id: str):
+    res = await client_keys.delete_one({"id": key_id})
+    return res.deleted_count > 0
+
+
 async def rotate_client_key(key_id: str):
     doc = await client_keys.find_one({"id": key_id}, {"_id": 0})
     if not doc:

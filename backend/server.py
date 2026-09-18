@@ -54,11 +54,23 @@ app.add_middleware(
 async def _seed():
     await ensure_settings()
 
-    # Seed the demo router client key (hash only stored; plaintext lives in env).
+    # Seed / self-heal the default router client key so the documented key in
+    # DEMO_CLIENT_KEY always authenticates (idempotent across restarts/resets).
     demo_client = os.environ.get("DEMO_CLIENT_KEY")
-    if demo_client and await client_keys.count_documents({}) == 0:
-        await ck.create_client_key("Default Client (Cline)", plaintext=demo_client)
-        logger.info("Seeded default router client key")
+    if demo_client:
+        from app.security.crypto import hash_client_key
+        kh = hash_client_key(demo_client)
+        if not await client_keys.find_one({"key_hash": kh}):
+            named = await client_keys.find_one({"name": "Default Client (Cline)"})
+            if named:
+                await client_keys.update_one(
+                    {"id": named["id"]},
+                    {"$set": {"key_hash": kh, "key_prefix": demo_client[:14],
+                              "enabled": True, "revoked_at": None}},
+                )
+            else:
+                await ck.create_client_key("Default Client (Cline)", plaintext=demo_client)
+            logger.info("Seeded/repaired default router client key")
 
     # Seed the Emergent Universal Key as the first provider key (user-owned, in env).
     if os.environ.get("SEED_EMERGENT_KEY", "false").lower() == "true":

@@ -1,0 +1,43 @@
+{
+  "summary": "Iteration 4: verified reported UX fixes end-to-end. All 6 fixes VERIFIED WORKING: (a) Telegram status cache — cold ~0.30s, warm <0.05s. (b) Nav flex-wrap — all 8 tabs visible in one row (['keys','usage','jobs','health','logs','commands','settings','client-keys']), no horizontal scroll. (c) Tab persistence — clicking CLIENT KEYS writes localStorage.router_active_tab='client-keys'; page reload keeps dashboard-header + create-client-key-button visible (does NOT drop to login or reset to API KEYS). (d) Graceful 401 — invalid JWT triggers return to login screen (no infinite reload). (e) Live auto-poll — after firing POST /api/v1/chat/completions the JOBS panel grew from 3->4 rows and header 'Reqs Today' went 2->3 within ~7s without manual refresh. (f) Router regression — chat.completions returns valid OpenAI-style body {object:'chat.completion', content:'OK'}. Client key create → one-time reveal (client-key-reveal) works; revoke works. HOWEVER: one CRITICAL bug remains — the documented router client key 'sk-router-Y7as_5RakGo-uoD6_VyGVF04AU-OG4Ut' (in /app/memory/test_credentials.md and backend/.env DEMO_CLIENT_KEY) does NOT match the DB-stored 'Default Client (Cline)' hash (DB prefix is 'sk-router-FMGd…'). Router requests with the documented key return 401. Backend /api/v1/chat/completions with Bearer sk-router-Y7as... → HTTP 401 'Invalid or revoked router API key'. This means any real Cline user still configured with that documented key is broken and it directly reproduces the user's complaint that the 'client keys section is confusing'.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "/api/v1/chat/completions (auth)", "issue": "Documented router key sk-router-Y7as_5RakGo-uoD6_VyGVF04AU-OG4Ut (env DEMO_CLIENT_KEY + test_credentials.md) does not match seeded 'Default Client (Cline)' hash in DB (actual prefix sk-router-FMGd…). Seeder in server.py:_seed() only runs when client_keys count==0, so after the reset the collection was populated with a randomly generated plaintext instead of DEMO_CLIENT_KEY. Any agent/Cline using the documented key gets 401.", "priority": "CRITICAL"}
+    ],
+    "minor": [
+      {"endpoint": "/api/admin/client-keys/{id}", "issue": "No hard DELETE endpoint — revoke leaves rows in list forever, cluttering the panel and reproducing the 'client keys confusing' UX complaint. Also a leftover user-created key named 'sad' (prefix sk-router-90wV) is still active in the DB; not created by tester, so left alone per instructions."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Client Keys panel", "issues": ["Revoked keys remain visible in the table with no filter/hide, which is exactly the 'confusing' behaviour the user flagged. Consider a 'Show revoked' toggle or auto-hide after N days."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_bug_fixes_iter4.py",
+    "/app/backend/tests/backend_api_test.py",
+    "/app/test_reports/pytest/iter4.xml"
+  ],
+  "action_items": [
+    "CRITICAL: Fix Default Client (Cline) seed mismatch. Options: (1) On startup, upsert the 'Default Client (Cline)' row so its key_hash always equals hash_client_key(DEMO_CLIENT_KEY) — i.e. drop the count==0 guard for the demo seed and instead find_one_and_update by name; (2) Or rewrite /app/memory/test_credentials.md with the actual current plaintext (requires exposing plaintext once on the next reset). Option (1) is preferred because it keeps the user's Cline config stable across restarts/deployments.",
+    "MINOR: Add a hard DELETE endpoint for revoked client keys, or hide revoked rows by default (Show revoked toggle) so the panel stays tidy.",
+    "MINOR: Consider clearing leftover user-experiment key 'sad' from the DB if it's not needed."
+  ],
+  "critical_code_review_comments": [
+    "server.py:_seed() is non-idempotent for content: it only creates when count==0. Since a random-plaintext key already exists in DB, the env-derived key is never applied. This is the root cause of the CRITICAL bug above.",
+    "client_keys.py has no hard delete; admin_routes.py exposes only revoke/rotate. The frontend Cleanup story (and test cleanup) has to rely on revoke, so lists grow monotonically.",
+    "backend/.env: DEMO_CLIENT_KEY is a real long-lived Bearer token committed alongside the code — consider documenting that rotating it requires a re-seed step, or moving to a first-boot-generated key that gets logged once."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_bug_fixes_iter4.py (created; creates its own ephemeral client key so tests don't depend on the mismatched documented key)"
+  ],
+  "success_rate": {"backend": "100% (4/4 iter4 tests, plus fix-suite still green)", "frontend": "100% of tested UX bug fixes verified"},
+  "test_credentials": "Admin token: abkA-iyoH_7uWKMb3_mr43nzFl4YHs99 (works). Router client key sk-router-Y7as_5RakGo-uoD6_VyGVF04AU-OG4Ut documented in /app/memory/test_credentials.md is INVALID against current DB (401). Router regression tests must create a fresh client key via /api/admin/client-keys.",
+  "seed_data_creation": "Two ephemeral client keys created during testing and cleaned up: 'TEST_iter4_temp' and 'TEST_iter4_live' — both revoked (no hard-delete endpoint exists). 'TEST_iter4_router' created and revoked by pytest. 'Default Client (Cline)' left ACTIVE. Note: pre-existing user key 'sad' (prefix sk-router-90wV, enabled) was NOT touched.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Fixes (a)-(f) from the review request all verified. The remaining CRITICAL bug is a DB/seed mismatch, not a code path in the newly-changed files. To retest after main-agent fix: (1) run pytest /app/backend/tests/test_bug_fixes_iter4.py — should stay green; (2) additionally verify that POST /api/v1/chat/completions with Bearer sk-router-Y7as_5RakGo-uoD6_VyGVF04AU-OG4Ut returns 200 (currently 401); (3) confirm DB Default Client (Cline) has key_prefix 'sk-router-Y7as'. Playwright fixtures for tab persistence rely on data-testid=nav-tab-client-keys, create-client-key-button, dashboard-header, admin-token-input, login-submit-button, show-token-login. localStorage keys: router_admin_token, router_active_tab.",
+  "rca of the issue": "Root cause of remaining critical bug: server.py:_seed() creates 'Default Client (Cline)' only when the collection is empty, passing plaintext=DEMO_CLIENT_KEY. When the collection was 'reset to a single active Default Client (Cline)' as claimed in the review, the reset apparently ran through create_client_key WITHOUT passing plaintext (so a random secrets.token_urlsafe(24) was generated). Now count>0, so the startup seeder skips, and the DB permanently holds a random-plaintext row whose hash doesn't match the documented Bearer. Reproduction: `curl -X POST $BE/api/v1/chat/completions -H 'Authorization: Bearer sk-router-Y7as_5RakGo-uoD6_VyGVF04AU-OG4Ut' -H 'Content-Type: application/json' -d '{\"model\":\"gpt-5.4\",\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}'` → 401. Mitigation: change _seed() to upsert the Default Client (Cline) by name so its key_hash is always hash_client_key(DEMO_CLIENT_KEY); or delete the current row and let _seed() recreate it correctly on next boot."
+}

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
-import { Plus, RotateCw, Ban, Copy, Loader2 } from "lucide-react";
+import { Plus, RotateCw, Ban, Copy, Loader2, Trash2 } from "lucide-react";
 import { api } from "../../lib/api";
 import { usePoll } from "../../lib/usePoll";
 import { fmtTime } from "../status";
@@ -16,6 +16,7 @@ export default function ClientKeysPanel() {
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
   const [reveal, setReveal] = useState(null);
+  const [showRevoked, setShowRevoked] = useState(false);
 
   const load = useCallback(() => {
     api.clientKeys().then((r) => setKeys(r.data)).catch(() => {});
@@ -49,6 +50,13 @@ export default function ClientKeysPanel() {
     if (!window.confirm("Revoke this client key?")) return;
     await api.revokeClientKey(id);
     toast.success("Client key revoked");
+    load();
+  };
+
+  const remove = async (id) => {
+    if (!window.confirm("Permanently delete this client key?")) return;
+    await api.deleteClientKey(id);
+    toast.success("Client key deleted");
     load();
   };
 
@@ -100,6 +108,12 @@ export default function ClientKeysPanel() {
       )}
 
       <div className="card-surface overflow-x-auto">
+        <div className="flex items-center justify-end px-3 pt-3">
+          <label className="flex items-center gap-2 text-xs text-slate-400 font-mono-x cursor-pointer" data-testid="show-revoked-toggle">
+            <input type="checkbox" checked={showRevoked} onChange={(e) => setShowRevoked(e.target.checked)} />
+            Show revoked
+          </label>
+        </div>
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left eyebrow border-b border-slate-800">
@@ -108,8 +122,10 @@ export default function ClientKeysPanel() {
             </tr>
           </thead>
           <tbody>
-            {keys.length === 0 && <tr><td colSpan="6" className="p-6 text-center text-slate-500">No client keys.</td></tr>}
-            {keys.map((k) => (
+            {(() => {
+              const rows = keys.filter((k) => showRevoked || k.enabled);
+              if (rows.length === 0) return <tr><td colSpan="6" className="p-6 text-center text-slate-500">No active client keys.</td></tr>;
+              return rows.map((k) => (
               <tr key={k.id} className="border-b border-slate-800/60" data-testid={`client-key-row-${k.id}`}>
                 <td className="p-3 text-slate-200">{k.name}</td>
                 <td className="p-3 font-mono-x text-cyan-400">{k.key_prefix}…</td>
@@ -121,13 +137,20 @@ export default function ClientKeysPanel() {
                 </td>
                 <td className="p-3 text-xs text-slate-500 font-mono-x">{fmtTime(k.created_at)}</td>
                 <td className="p-3 flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => rotate(k.id)} data-testid={`rotate-client-key-${k.id}`}
-                    className="border-slate-700 bg-slate-900/60 text-slate-200"><RotateCw className="w-4 h-4" /></Button>
-                  <Button size="sm" variant="outline" onClick={() => revoke(k.id)} data-testid={`revoke-client-key-${k.id}`}
-                    className="border-rose-900/60 bg-rose-950/30 text-rose-300"><Ban className="w-4 h-4" /></Button>
+                  {k.enabled && (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => rotate(k.id)} data-testid={`rotate-client-key-${k.id}`}
+                        className="border-slate-700 bg-slate-900/60 text-slate-200"><RotateCw className="w-4 h-4" /></Button>
+                      <Button size="sm" variant="outline" onClick={() => revoke(k.id)} data-testid={`revoke-client-key-${k.id}`}
+                        className="border-amber-900/60 bg-amber-950/30 text-amber-300"><Ban className="w-4 h-4" /></Button>
+                    </>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => remove(k.id)} data-testid={`delete-client-key-${k.id}`}
+                    className="border-rose-900/60 bg-rose-950/30 text-rose-300"><Trash2 className="w-4 h-4" /></Button>
                 </td>
               </tr>
-            ))}
+              ));
+            })()}
           </tbody>
         </table>
       </div>

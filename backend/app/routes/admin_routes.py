@@ -278,6 +278,15 @@ async def revoke_client_key(key_id: str, admin=Depends(require_admin)):
     return {"revoked": True}
 
 
+@router.delete("/client-keys/{key_id}")
+async def delete_client_key(key_id: str, admin=Depends(require_admin)):
+    ok = await ck.delete_client_key(key_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Client key not found")
+    await _audit(admin["sub"], "delete_client_key", key_id)
+    return {"deleted": True}
+
+
 @router.post("/client-keys/{key_id}/rotate")
 async def rotate_client_key(key_id: str, admin=Depends(require_admin)):
     pub, plaintext = await ck.rotate_client_key(key_id)

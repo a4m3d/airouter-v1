@@ -49,6 +49,7 @@ export const api = {
   clientKeys: () => client.get("/admin/client-keys"),
   createClientKey: (b) => client.post("/admin/client-keys", b),
   revokeClientKey: (id) => client.post(`/admin/client-keys/${id}/revoke`),
+  deleteClientKey: (id) => client.delete(`/admin/client-keys/${id}`),
   rotateClientKey: (id) => client.post(`/admin/client-keys/${id}/rotate`),
   telegramStatus: () => client.get("/admin/telegram"),
   telegramSetWebhook: () => client.post("/admin/telegram/set-webhook"),
