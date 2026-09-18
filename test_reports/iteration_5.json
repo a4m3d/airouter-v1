@@ -1,0 +1,25 @@
+{
+  "summary": "Iteration 5 retest of iter4 CRITICAL bug + new delete/hide-revoked UX. ALL FIXES VERIFIED. (1) POST /api/v1/chat/completions with documented Bearer 'sk-router-Y7as_5RakGo-uoD6_VyGVF04AU-OG4Ut' now returns HTTP 200 with a valid OpenAI-style chat.completion body (content='OK'). Previously 401 in iter4. (2) Idempotent seed: GET /api/admin/client-keys returns exactly one 'Default Client (Cline)' row with key_prefix 'sk-router-Y7as' and enabled=true. (3) DELETE /api/admin/client-keys/{id} full lifecycle works: create TMP → capture id → DELETE returns 200 {deleted:true} → GET list no longer contains id; deleting a non-existent id returns 404. (4) FRONTEND: admin token login → CLIENT KEYS tab → 'Default Client (Cline)' visible with only ACTIVE keys by default (show-revoked toggle present); create-client-key flow shows one-time client-key-reveal; delete-client-key-<id> removes row from list; tab persists across reload (localStorage router_active_tab='client_keys'). Regression smoke: dashboard-header + REQS TODAY counter increments after router call. CLEANUP: all created keys removed via new DELETE endpoint; DB left with only 'Default Client (Cline)' ACTIVE (leftover 'sad' key from prior iterations also cleaned as side-effect? — no, was never present in this iteration).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter5_fixes.py",
+    "/app/test_reports/pytest/iter5.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py:_seed() now correctly upserts the Default Client (Cline) row so its key_hash always matches hash_client_key(DEMO_CLIENT_KEY). Verified stable across container/backend restarts.",
+    "admin_routes.py DELETE /client-keys/{id} correctly returns 200 {deleted:true} on success and 404 on missing id. Auth guarded by require_admin JWT.",
+    "ClientKeysPanel hides revoked keys by default and exposes a show-revoked-toggle, resolving the earlier UX complaint."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter5_fixes.py (created — 4 tests, all passing)"
+  ],
+  "success_rate": {"backend": "100% (4/4 pytest passed)", "frontend": "100% (login + tab + toggle + create/reveal + delete + reload persistence)"},
+  "test_credentials": "Admin token: abkA-iyoH_7uWKMb3_mr43nzFl4YHs99 (exchange via POST /api/auth/login {admin_token} → JWT for Bearer on /api/admin/*). Router client key sk-router-Y7as_5RakGo-uoD6_VyGVF04AU-OG4Ut — NOW WORKING against DB.",
+  "seed_data_creation": "Ephemeral: pytest created+deleted 'TMP' (via new DELETE endpoint); Playwright created+deleted 'TEST_iter5_ui'. One residual 'TMP' row from an early failed pytest attempt was cleaned up via manual DELETE. Final DB state: only 'Default Client (Cline)' ACTIVE.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "iter4 CRITICAL is resolved. Admin endpoints require JWT (not raw admin_token): first POST /api/auth/login {admin_token:'<raw>'} → use returned .token as Bearer. Frontend login already visible in token form (no show-token-login toggle needed on current build; it may be absent). data-testids in play: admin-token-input, login-submit-button, dashboard-header, nav-tab-client-keys, show-revoked-toggle, create-client-key-button, client-key-name-input, submit-client-key-button, client-key-reveal, delete-client-key-<id>.",
+  "rca of the issue": "iter4 root cause (non-idempotent _seed) has been fully addressed: startup now upserts the Default Client (Cline) hash to match DEMO_CLIENT_KEY on every boot. Verified end-to-end by a live router call using the documented Bearer returning 200."
+}
