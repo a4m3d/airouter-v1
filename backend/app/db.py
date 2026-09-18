@@ -13,6 +13,7 @@ failovers = db.failovers
 health_checks = db.health_checks
 settings_col = db.settings
 audit_logs = db.audit_logs
+telegram_seen = db.telegram_seen
 
 
 async def create_indexes():

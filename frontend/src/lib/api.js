@@ -49,4 +49,5 @@ export const api = {
   telegramStatus: () => client.get("/admin/telegram"),
   telegramSetWebhook: () => client.post("/admin/telegram/set-webhook"),
   telegramTest: () => client.post("/admin/telegram/test"),
+  telegramAuthorize: (id) => client.post("/admin/telegram/authorize", { id }),
 };

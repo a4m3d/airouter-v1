@@ -9,7 +9,7 @@ import time
 
 import requests as http
 
-from app.db import jobs, requests as req_col, failovers
+from app.db import jobs, requests as req_col, failovers, telegram_seen
 from app.settings_store import effective_admin_ids, get_settings, update_settings
 from app import key_manager as km
 
@@ -156,9 +156,23 @@ async def process_update(update: dict):
         return
     text = msg.get("text", "")
     chat_id = msg.get("chat", {}).get("id")
-    user_id = str(msg.get("from", {}).get("id"))
+    frm = msg.get("from", {})
+    user_id = str(frm.get("id"))
     if not text.startswith("/"):
         return
+
+    # Remember whoever messages the bot so the admin can one-tap authorize them.
+    name = (frm.get("first_name", "") + (" " + frm.get("last_name", "") if frm.get("last_name") else "")).strip()
+    try:
+        await telegram_seen.update_one(
+            {"id": user_id},
+            {"$set": {"id": user_id, "name": name or "Unknown",
+                      "username": frm.get("username"), "chat_id": chat_id,
+                      "last_seen": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}},
+            upsert=True,
+        )
+    except Exception:
+        pass
 
     admins = await effective_admin_ids()
     if user_id not in admins:

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
-import { Send, Link2, Save, Loader2, Bot } from "lucide-react";
+import { Send, Link2, Save, Loader2, Bot, UserPlus } from "lucide-react";
 import { api } from "../../lib/api";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -48,6 +48,16 @@ export default function TelegramCard() {
     finally { setBusy(null); }
   };
 
+  const authorize = async (id) => {
+    setBusy(`auth-${id}`);
+    try {
+      await api.telegramAuthorize(id);
+      toast.success(`Authorized ${id}`);
+      load();
+    } catch (e) { toast.error("Failed to authorize"); }
+    finally { setBusy(null); }
+  };
+
   if (!status) return null;
 
   const connected = status.token_configured && status.bot;
@@ -73,8 +83,29 @@ export default function TelegramCard() {
       <div className="rounded-lg bg-slate-950/60 border border-slate-800 p-3 mb-4 text-xs text-slate-400 leading-relaxed">
         <b className="text-slate-200">How to get your Telegram ID:</b> open Telegram, message
         <span className="text-cyan-400"> @{status.bot ? status.bot.username : "your bot"} </span>
-        and send <code className="text-cyan-400">/start</code>. Since you're not yet an admin, it replies with your numeric ID. Paste it below and save. (Or message <code className="text-cyan-400">@userinfobot</code>.)
+        and send <code className="text-cyan-400">/start</code>. Since you're not yet an admin, it replies with your numeric ID — and you'll also appear below for one-tap authorize.
       </div>
+
+      {status.pending_users && status.pending_users.length > 0 && (
+        <div className="mb-4" data-testid="telegram-pending-users">
+          <label className="eyebrow block mb-2">Users who messaged the bot — tap to authorize</label>
+          <div className="space-y-2">
+            {status.pending_users.map((u) => (
+              <div key={u.id} className="flex items-center justify-between bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2">
+                <div className="text-xs font-mono-x">
+                  <span className="text-slate-200">{u.name}</span>
+                  {u.username ? <span className="text-slate-500"> @{u.username}</span> : null}
+                  <span className="text-cyan-400"> · {u.id}</span>
+                </div>
+                <Button data-testid={`authorize-user-${u.id}`} onClick={() => authorize(u.id)} disabled={busy === `auth-${u.id}`}
+                  size="sm" className="bg-emerald-600 hover:bg-emerald-500 text-white">
+                  {busy === `auth-${u.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <><UserPlus className="w-4 h-4 mr-1" />Authorize</>}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <label className="eyebrow block mb-2">Authorized Admin IDs (comma-separated)</label>
       <div className="flex gap-2 mb-3">
